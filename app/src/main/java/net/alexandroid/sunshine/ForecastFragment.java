@@ -70,7 +70,7 @@ public class ForecastFragment extends Fragment {
     }
 
     private void updateWeather() {
-        FetchWeatherTask weatherTask = new FetchWeatherTask();
+        FetchWeatherTask weatherTask = new FetchWeatherTask(getActivity(), mForecastAdapter);
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
         String location = sharedPreferences.getString(getString(R.string.pref_location_key), getString(R.string.pref_location_default));
         weatherTask.execute(location);
@@ -98,89 +98,7 @@ public class ForecastFragment extends Fragment {
         return rootView;
     }
 
-    public class FetchWeatherTask extends AsyncTask<String, Void, String[]> {
-        @Override
-        protected String[] doInBackground(String... params) {
-            HttpURLConnection urlConnection = null;
-            BufferedReader reader = null;
-            String forecastJsonStr = null;
 
-            String format = "json";
-            String units = "metric";
-            int numDays = 7;
-
-
-            try {
-                final String BASE_URL = "http://api.openweathermap.org/data/2.5/forecast/daily?";
-                final String QUERY_PARAM = "q";
-                final String FORMAT_PARAM = "mode";
-                final String UNITS_PARAM = "units";
-                final String DAYS_PARAM = "cnt";
-                Uri uri = Uri.parse(BASE_URL).buildUpon()
-                        .appendQueryParameter(QUERY_PARAM, params[0])
-                        .appendQueryParameter(FORMAT_PARAM, format)
-                        .appendQueryParameter(UNITS_PARAM, units)
-                        .appendQueryParameter(DAYS_PARAM, Integer.toString(numDays)).build();
-
-                Log.d("uri.toString()", uri.toString());
-
-                URL url = new URL(uri.toString());
-
-                // Create the request to OpenWeatherMap, and open the connection
-                urlConnection = (HttpURLConnection) url.openConnection();
-                urlConnection.setRequestMethod("GET");
-                urlConnection.connect();
-
-                // Read the input stream into a String
-                InputStream inputStream = urlConnection.getInputStream();
-                StringBuffer buffer = new StringBuffer();
-                if (inputStream == null) return null;   // Nothing to do.
-
-                reader = new BufferedReader(new InputStreamReader(inputStream));
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    buffer.append(line + "\n");
-                }
-
-                if (buffer.length() == 0) return null;    // Stream was empty.  No point in parsing.
-
-                forecastJsonStr = buffer.toString();
-                Log.d("forecastJsonStr", forecastJsonStr);
-                try {
-                    return getWeatherDataFromJson(forecastJsonStr, numDays);
-                } catch (JSONException e) {
-                    e.printStackTrace();
-
-                }
-            } catch (IOException e) {
-                Log.e("PlaceholderFragment", "Error ", e);
-                // If the code didn't successfully get the weather data, there's no point in attemping
-                // to parse it.
-                return null;
-            } finally {
-                if (urlConnection != null) {
-                    urlConnection.disconnect();
-                }
-                if (reader != null) {
-                    try {
-                        reader.close();
-                    } catch (final IOException e) {
-                        Log.e("PlaceholderFragment", "Error closing stream", e);
-                    }
-                }
-            }
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(String[] strings) {
-            super.onPostExecute(strings);
-            mForecastAdapter.clear();
-            for (String dayForecastStr : strings) {
-                mForecastAdapter.add(dayForecastStr);
-            }
-        }
-    }
 
     /* The date/time conversion code is going to be moved outside the asynctask later,
          * so for convenience we're breaking it out into its own method now.
