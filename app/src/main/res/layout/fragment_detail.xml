@@ -67,8 +67,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
-                android:contentDescription="@string/desc"
-                android:src="@mipmap/ic_launcher" />
+                android:contentDescription="@string/desc"/>
 
             <TextView
                 android:id="@+id/tv_weather"
